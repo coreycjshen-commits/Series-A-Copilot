@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fafaf9;
+  --foreground: #1c1917;
+  --card: #ffffff;
+  --card-border: #e7e5e4;
+  --muted: #78716c;
+  --accent: #292524;
+  --accent-hover: #1c1917;
+  --success: #166534;
+  --success-bg: #dcfce7;
+  --warning: #92400e;
+  --warning-bg: #fef3c7;
+  --error: #991b1b;
+  --error-bg: #fee2e2;
+  --processing: #1e40af;
+  --processing-bg: #dbeafe;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-border: var(--card-border);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-error: var(--error);
+  --color-error-bg: var(--error-bg);
+  --color-processing: var(--processing);
+  --color-processing-bg: var(--processing-bg);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-serif: "Georgia", "Times New Roman", serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.memo-content h1,
+.memo-content h2,
+.memo-content h3 {
+  font-family: var(--font-serif);
+}
+
+.memo-content h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.memo-content h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.memo-content p {
+  font-size: 0.875rem;
+  line-height: 1.7;
+  margin-bottom: 0.75rem;
+  color: color-mix(in srgb, var(--foreground) 90%, transparent);
+}
+
+.memo-content ul,
+.memo-content ol {
+  padding-left: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.memo-content ul {
+  list-style-type: disc;
+}
+
+.memo-content ol {
+  list-style-type: decimal;
+}
+
+.memo-content li {
+  font-size: 0.875rem;
+  line-height: 1.7;
+  margin-bottom: 0.25rem;
+  color: color-mix(in srgb, var(--foreground) 90%, transparent);
+}
+
+.memo-content strong {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.memo-content blockquote {
+  border-left: 2px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  padding-left: 1rem;
+  font-style: italic;
+  color: var(--muted);
+}
+
+.memo-content table {
+  width: 100%;
+  font-size: 0.875rem;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.memo-content th,
+.memo-content td {
+  border: 1px solid var(--card-border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.memo-content th {
+  background: var(--card);
+  font-weight: 500;
+}
