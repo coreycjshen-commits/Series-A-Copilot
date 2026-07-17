@@ -10,6 +10,8 @@ interface UploadedFile {
   storagePath: string;
 }
 
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -53,12 +55,12 @@ export async function POST(request: NextRequest) {
 
   const memoId = memo.id;
 
-  processInBackground(memoId, user.id, files || [], companyName || "", callNotes || "", admin);
+  await processMemo(memoId, user.id, files || [], companyName || "", callNotes || "", admin);
 
   return NextResponse.json({ memoId });
 }
 
-async function processInBackground(
+async function processMemo(
   memoId: string,
   userId: string,
   files: UploadedFile[],
