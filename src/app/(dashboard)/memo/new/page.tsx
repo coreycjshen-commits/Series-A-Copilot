@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export default function NewMemoPage() {
   const [files, setFiles] = useState<File[]>([]);
@@ -45,16 +46,32 @@ export default function NewMemoPage() {
     setStage("Uploading files...");
 
     try {
-      const formData = new FormData();
-      formData.append("companyName", companyName);
-      formData.append("callNotes", callNotes);
-      files.forEach((file) => formData.append("files", file));
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
-      setStage("Extracting text & generating memo...");
+      const uploadedFiles: { name: string; storagePath: string }[] = [];
+
+      for (const file of files) {
+        const storagePath = `${user.id}/uploads/${Date.now()}-${file.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from("memo-files")
+          .upload(storagePath, file, { contentType: file.type });
+
+        if (uploadError) throw new Error(`Failed to upload ${file.name}: ${uploadError.message}`);
+        uploadedFiles.push({ name: file.name, storagePath });
+      }
+
+      setStage("Generating memo...");
 
       const res = await fetch("/api/memos/create", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          companyName,
+          callNotes,
+          files: uploadedFiles,
+        }),
       });
 
       if (!res.ok) {

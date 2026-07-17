@@ -5,6 +5,11 @@ import { extractText } from "@/lib/extract-text";
 import { SERIES_A_SYSTEM_PROMPT } from "@/lib/system-prompt";
 import Groq from "groq-sdk";
 
+interface UploadedFile {
+  name: string;
+  storagePath: string;
+}
+
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -13,12 +18,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const formData = await request.formData();
-  const companyName = formData.get("companyName") as string || "";
-  const callNotes = formData.get("callNotes") as string || "";
-  const files = formData.getAll("files") as File[];
+  const { companyName, callNotes, files } = await request.json() as {
+    companyName: string;
+    callNotes: string;
+    files: UploadedFile[];
+  };
 
-  if (files.length === 0 && !callNotes.trim()) {
+  if ((!files || files.length === 0) && !callNotes?.trim()) {
     return NextResponse.json(
       { error: "Upload at least one file or provide call notes." },
       { status: 400 }
@@ -47,7 +53,7 @@ export async function POST(request: NextRequest) {
 
   const memoId = memo.id;
 
-  processInBackground(memoId, user.id, files, companyName, callNotes, admin);
+  processInBackground(memoId, user.id, files || [], companyName || "", callNotes || "", admin);
 
   return NextResponse.json({ memoId });
 }
@@ -55,7 +61,7 @@ export async function POST(request: NextRequest) {
 async function processInBackground(
   memoId: string,
   userId: string,
-  files: File[],
+  files: UploadedFile[],
   companyName: string,
   callNotes: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -65,21 +71,22 @@ async function processInBackground(
     const extractedTexts: { name: string; text: string }[] = [];
 
     for (const file of files) {
-      const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
+      const { data: fileData, error: downloadError } = await admin.storage
+        .from("memo-files")
+        .download(file.storagePath);
 
-      const storagePath = `${userId}/${memoId}/${file.name}`;
-      await admin.storage.from("memo-files").upload(storagePath, buffer, {
-        contentType: file.type,
-        upsert: false,
-      });
+      if (downloadError || !fileData) {
+        console.error("File download error:", downloadError);
+        continue;
+      }
 
+      const buffer = Buffer.from(await fileData.arrayBuffer());
       const text = await extractText(buffer, file.name);
 
       await admin.from("memo_files").insert({
         memo_id: memoId,
         file_name: file.name,
-        storage_path: storagePath,
+        storage_path: file.storagePath,
         file_type: inferFileType(file.name),
         extracted_text: text,
       });
