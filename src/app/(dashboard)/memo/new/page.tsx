@@ -58,13 +58,13 @@ export default function NewMemoPage() {
       });
 
       if (!res.ok) {
-        let message = "Failed to create memo";
+        const text = await res.text();
+        let message = `Server error (${res.status})`;
         try {
-          const body = await res.json();
+          const body = JSON.parse(text);
           message = body.error || message;
         } catch {
-          const text = await res.text();
-          message = `Server error (${res.status}): ${text.slice(0, 200)}`;
+          message = `${message}: ${text.slice(0, 200)}`;
         }
         throw new Error(message);
       }
